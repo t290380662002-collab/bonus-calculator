@@ -315,8 +315,8 @@
   .cal-day:hover { background:#1a3355; }
   .cal-day.empty { pointer-events:none; }
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+
 </head>
 <body>
 <div class="container">
@@ -553,25 +553,6 @@ window.clearRecords = function() {
 
 // ===== 原始 script 內容（劫持 renderRecords/renderCal） =====
 /* ===== Firebase 初始化 ===== */
-const FB_CONFIG = {
-  apiKey: "AIzaSyCPANJG8suKEAvb5RL8fdKsSpquiaDgAD4",
-  authDomain: "anget01.firebaseapp.com",
-  databaseURL: "https://anget01-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "anget01",
-  storageBucket: "anget01.firebasestorage.app",
-  messagingSenderId: "714232491975",
-  appId: "1:714232491975:web:f26bb5250d2676a99173e2"
-};
-firebase.initializeApp(FB_CONFIG);
-const DB = firebase.database();
-const REC_REF = DB.ref('bonusRecords');
-
-const fmt = function(n) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  return '$' + Math.round(n).toLocaleString('zh-HK');
-};
-const $ = function(id) { return document.getElementById(id); };
-
 /* ===== 同步狀態 ===== */
 function setSync(online) {
   var dot = $('syncDot'), txt = $('syncText');
@@ -741,7 +722,6 @@ function doCalc() {
 }
 
 /* ===== Firebase 即時監聽 ===== */
-var allRecords = [];
 REC_REF.orderByChild('createdAt').on('value', function(snap) {
   var data = snap.val() || {};
   allRecords = [];
