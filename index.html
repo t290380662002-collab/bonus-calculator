@@ -344,10 +344,8 @@
 
     <div class="card">
       <div style="margin-bottom:12px; text-align:center;">
-        <label style="display:inline-block; margin:0 6px 0 0;">篩選日期</label>
-        <select id="filterDate" onchange="renderRecords()" style="width:auto; max-width:200px; display:inline-block;">
-          <option value="">全部</option>
-        </select>
+        <button class="tab" style="max-width:120px; border-radius:8px; padding:8px 0; display:inline-block; margin:0 4px;" onclick="setDateFilter('all')" id="btnAll">全部</button>
+        <button class="tab" style="max-width:120px; border-radius:8px; padding:8px 0; display:inline-block; margin:0 4px;" onclick="setDateFilter('month')" id="btnMonth">本月</button>
       </div>
       <div class="record-wrap">
         <table class="record-table" id="recordTable">
@@ -462,19 +460,17 @@ function doCalc() {
 /* ── 記錄表格 ── */
 function renderRecords() {
   const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  const filter  = $('filterDate').value;
   const body    = $('recordBody');
   const empty   = $('emptyHint');
 
-  // 填入日期選項（去重複）
-  const dates = [...new Set(records.map(r => r.date))].sort().reverse();
-  const sel = $('filterDate');
-  const current = sel.value;
-  sel.innerHTML = '<option value="">全部</option>' +
-    dates.map(d => `<option value="${d}" ${d===current?'selected':''}>${d}</option>`).join('');
-
-  // 篩選
-  const filtered = filter ? records.filter(r => r.date === filter) : records;
+  // 日期篩選
+  let filtered = records;
+  const mode = $('btnMonth').classList.contains('active') ? 'month' : 'all';
+  if (mode === 'month') {
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    filtered = records.filter(r => r.date && r.date.startsWith(ym));
+  }
 
   if (filtered.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
@@ -512,6 +508,20 @@ function renderRecords() {
 
   body.innerHTML = html;
 }
+
+/* ── 日期篩選切換 ── */
+function setDateFilter(mode) {
+  $('btnAll').classList.remove('active');
+  $('btnMonth').classList.remove('active');
+  if (mode === 'month') {
+    $('btnMonth').classList.add('active');
+  } else {
+    $('btnAll').classList.add('active');
+  }
+  renderRecords();
+}
+// 預設「本月」
+setDateFilter('month');
 
 function claimRecord(idx) {
   const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
