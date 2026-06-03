@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>業績獎金計算器</title>
 <!-- Firebase SDK (正確 CDN 網址) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+
 <style>
   * { box-sizing: border-box; margin:0; padding:0; }
   body {
@@ -315,7 +315,8 @@
   .cal-day:hover { background:#1a3355; }
   .cal-day.empty { pointer-events:none; }
 </style>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 </head>
 <body>
@@ -326,11 +327,6 @@
     <button class="tab-btn active" onclick="switchPage('calc')">🧮 計算</button>
     <button class="tab-btn" onclick="switchPage('records')">📊 記錄</button>
   </div>
-  <div id="syncBar" style="text-align:center;color:#888;font-size:12px;margin-bottom:8px;">
-    <span id="syncDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;"></span>
-    <span id="syncText">即時同步中</span>
-  </div>
-
 
   <!-- 同步狀態 -->
   <div class="sync-bar" id="syncBar">
@@ -463,7 +459,7 @@
 </div>
 
 <script>
-// ===== Firebase 初始化 =====
+/* ===== Firebase 初始化 ===== */
 const FB_CONFIG = {
   apiKey: "AIzaSyCPANJG8suKEAvb5RL8fdKsSpquiaDgAD4",
   authDomain: "anget01.firebaseapp.com",
@@ -475,84 +471,14 @@ const FB_CONFIG = {
 };
 firebase.initializeApp(FB_CONFIG);
 const DB = firebase.database();
-const REC_REF = DB.ref("bonusRecords");
+const REC_REF = DB.ref('bonusRecords');
 
-// ===== 全域變數 =====
-let allRecords = [];
-
-// ===== 同步狀態 =====
-function setSync(online) {
-  const dot = document.getElementById("syncDot");
-  const txt = document.getElementById("syncText");
-  if (!dot || !txt) return;
-  if (online) { dot.style.background = "#4caf50"; txt.textContent = "即時同步中"; }
-  else { dot.style.background = "#f44336"; txt.textContent = "離線模式"; }
-}
-
-// ===== Firebase 即時監聽 =====
-REC_REF.orderByChild("createdAt").on("value", function(snap) {
-  const data = snap.val() || {};
-  allRecords = [];
-  Object.keys(data).forEach(function(key) {
-    var v = data[key]; v._key = key; allRecords.push(v);
-  });
-  if (typeof renderRecords === "function") renderRecords();
-  if (typeof renderCal === "function") renderCal();
-  setSync(true);
-}, function(err) { setSync(false); });
-
-// ===== 劫持 doCalc 寫入 Firebase =====
-const _origDoCalc = window.doCalc;
-window.doCalc = function() {
-  // 先執行原始計算（它會處理 localStorage 和顯示結果）
-  if (typeof _origDoCalc === "function") _origDoCalc();
-  
-  // 再寫入 Firebase
-  const date    = document.getElementById("rDate").value;
-  const bigName   = document.getElementById("bigName").value;
-  const smallNm   = document.getElementById("smallName").value.trim() || "（未填）";
-  const member    = document.getElementById("member").value.trim() || "（未填）";
-  const theo      = parseFloat(document.getElementById("totalTheo").value) || 0;
-  const bigRate   = parseFloat(document.getElementById("bigRate").value) || 0;
-  const smallRate = parseFloat(document.getElementById("smallRate").value) || 0;
-  if (theo <= 0) return;
-  const bigGross   = theo * (bigRate / 100);
-  const bigNet     = bigGross * 0.94;
-  const smallBonus = theo * (smallRate / 100);
-  const bigProfit  = bigNet - smallBonus;
-  const rec = {
-    date: date, bigName: bigName, smallName: smallNm, member: member,
-    theo: theo, bigRate: bigRate, smallRate: smallRate,
-    bigGross: bigGross, bigNet: bigNet, smallBonus: smallBonus, bigProfit: bigProfit,
-    claimed: false, createdAt: firebase.database.ServerValue.TIMESTAMP
-  };
-  REC_REF.push(rec, function(err) {
-    if (err) { alert("同步失敗！"); setSync(false); }
-  });
+const fmt = function(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return '$' + Math.round(n).toLocaleString('zh-HK');
 };
+const $ = function(id) { return document.getElementById(id); };
 
-// ===== 劫持 claimRecord / deleteRecord =====
-window.claimRecord = function(key) {
-  DB.ref("bonusRecords/" + key).update({ claimed: true }, function(err) {
-    if (err) { alert("同步失敗！"); setSync(false); }
-  });
-};
-window.deleteRecord = function(key) {
-  if (!confirm("確定刪除這筆記錄？")) return;
-  DB.ref("bonusRecords/" + key).remove(function(err) {
-    if (err) { alert("同步失敗！"); setSync(false); }
-  });
-};
-window.clearRecords = function() {
-  if (!confirm("確定清除所有記錄？此操作不可撤銷！")) return;
-  if (!confirm("再次確認：清除後所有裝置的資料都會消失，確定？")) return;
-  REC_REF.remove(function(err) {
-    if (err) { alert("同步失敗！"); setSync(false); }
-  });
-};
-
-// ===== 原始 script 內容（劫持 renderRecords/renderCal） =====
-/* ===== Firebase 初始化 ===== */
 /* ===== 同步狀態 ===== */
 function setSync(online) {
   var dot = $('syncDot'), txt = $('syncText');
@@ -722,6 +648,7 @@ function doCalc() {
 }
 
 /* ===== Firebase 即時監聽 ===== */
+var allRecords = [];
 REC_REF.orderByChild('createdAt').on('value', function(snap) {
   var data = snap.val() || {};
   allRecords = [];
@@ -810,15 +737,6 @@ function clearRecords() {
   filterDate = '';
   // 如果 Firebase 已載入則 renderRecords 會被 on('value') 呼叫
 })();
-
-// ===== 初始化 =====
-(function(){
-  const today = new Date().toISOString().split("T")[0];
-  if (document.getElementById("rDate")) document.getElementById("rDate").value = today;
-  if (typeof renderBigAgentSelect === "function") renderBigAgentSelect();
-  if (typeof initCal === "function") initCal();
-})();
-
 </script>
 </body>
 </html>
