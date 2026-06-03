@@ -343,6 +343,12 @@
     <h1>📊 計算記錄</h1>
 
     <div class="card">
+      <div style="margin-bottom:12px; text-align:center;">
+        <label style="display:inline-block; margin:0 6px 0 0;">篩選日期</label>
+        <select id="filterDate" onchange="renderRecords()" style="width:auto; max-width:200px; display:inline-block;">
+          <option value="">全部</option>
+        </select>
+      </div>
       <div class="record-wrap">
         <table class="record-table" id="recordTable">
           <thead>
@@ -456,9 +462,21 @@ function doCalc() {
 /* ── 記錄表格 ── */
 function renderRecords() {
   const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
+  const filter  = $('filterDate').value;
   const body    = $('recordBody');
   const empty   = $('emptyHint');
-  if (records.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
+
+  // 填入日期選項（去重複）
+  const dates = [...new Set(records.map(r => r.date))].sort().reverse();
+  const sel = $('filterDate');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">全部</option>' +
+    dates.map(d => `<option value="${d}" ${d===current?'selected':''}>${d}</option>`).join('');
+
+  // 篩選
+  const filtered = filter ? records.filter(r => r.date === filter) : records;
+
+  if (filtered.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
 
   // 各列
