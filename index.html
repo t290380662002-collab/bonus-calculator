@@ -519,17 +519,13 @@ function renderRecords() {
       </td>
     </tr>`).join('');
 
-  // 總和列（用 filtered）
-  const totalBig     = filtered.reduce((s,r) => s + (r.bigNet    ||0), 0);
-  const totalSmall   = filtered.reduce((s,r) => s + (r.smallBonus||0), 0);
+  // 總和列（只顯示大代理利潤＋提取按鈕）
   const totalProfit  = filtered.reduce((s,r) => s + (r.bigProfit ||0), 0);
   html += `
     <tr class="total-row">
-      <td colspan="3" class="total-label">總和</td>
-      <td class="num">${fmt(totalBig)}</td>
-      <td class="num">${fmt(totalSmall)}</td>
-      <td class="num ${totalProfit>=0?'gold':'red'}">${fmt(totalProfit)}</td>
-      <td></td>
+      <td colspan="6" class="total-label" style="text-align:right;">總和大代理利潤：</td>
+      <td class="num ${totalProfit>=0?'gold':'red'}" style="font-size:1.1rem;">${fmt(totalProfit)}</td>
+      <td><button class="btn-claim" onclick="extractProfit()" style="border-color:#f0c040; color:#f0c040;">提取</button></td>
     </tr>`;
 
   body.innerHTML = html;
@@ -632,6 +628,12 @@ function claimRecord(idx) {
   renderRecords();
 }
 
+function extractProfit() {
+  const pwd = prompt('請輸入密碼確認提取：');
+  if (pwd !== '1234') { alert('密碼錯誤'); return; }
+  alert('提取成功！請聯絡財務處理。');
+  // 這裡可以加實際提取邏輯（如寫入 Firebase 或標記已提取）
+}
 function clearRecords() {
   if (!confirm('確定清除所有記錄？')) return;
   localStorage.removeItem('bonusRecords');
