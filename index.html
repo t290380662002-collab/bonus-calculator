@@ -350,6 +350,7 @@
               <th>日期</th>
               <th>大代理</th>
               <th>會員</th>
+              <th>Theo</th>
               <th>大代理<br>獎金</th>
               <th>小代理<br>獎金</th>
               <th>大代理<br>利潤</th>
@@ -466,6 +467,7 @@ function renderRecords() {
       <td style="color:#8899aa;white-space:nowrap;">${r.date}</td>
       <td style="color:#88c0f0;">${r.bigName}</td>
       <td style="color:#aaa;">${r.member}</td>
+      <td class="num" style="color:#aaa;">${fmt(r.theo)}</td>
       <td class="num gold">${fmt(r.bigNet)}</td>
       <td class="num green">${fmt(r.smallBonus)}</td>
       <td class="num ${r.bigProfit>=0?'gold':'red'}">${fmt(r.bigProfit)}</td>
