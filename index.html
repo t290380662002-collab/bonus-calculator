@@ -5,18 +5,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>業績獎金計算器</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin:0; padding:0; }
   body {
-    font-family: 'Microsoft YaHei', 'PingFang HK', sans-serif;
+    font-family: 'Microsoft YaHei','PingFang HK',sans-serif;
     background: #0a1628;
     color: #e0e0e0;
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 24px 12px 60px;
+    padding: 20px 10px 60px;
   }
-  .container { width: 100%; max-width: 580px; }
+  .container { width:100%; max-width:560px; }
 
+  /* 頁籤 */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #1e3050;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    background: #111d33;
+    color: #667788;
+    letter-spacing: 1px;
+    transition: background 0.2s, color 0.2s;
+    border: none;
+  }
+  .tab.active { background: #1a2e50; color: #f0c040; }
+  .tab:first-child { border-right: 1px solid #1e3050; }
+
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* 標題 */
   h1 {
     text-align: center;
     font-size: 1.4rem;
@@ -28,32 +57,33 @@
   .card {
     background: #111d33;
     border-radius: 12px;
-    padding: 20px;
+    padding: 20px 18px;
     margin-bottom: 16px;
     border: 1px solid #1e3050;
+    text-align: center;
   }
   .card-title {
     font-size: 0.82rem;
     color: #f0c040;
     margin-bottom: 14px;
     letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    text-align: center;
   }
-  .card-title .icon { font-size: 1rem; }
+  .card-title .icon { margin-right:4px; }
 
   label {
     display: block;
     font-size: 0.78rem;
     color: #8899aa;
     margin-bottom: 5px;
-    margin-top: 12px;
+    margin-top: 14px;
+    text-align: center;
   }
-  label:first-of-type { margin-top: 0; }
+  label:first-of-type { margin-top:0; }
 
   select, input[type="number"], input[type="text"], input[type="date"] {
     width: 100%;
+    max-width: 320px;
     padding: 9px 11px;
     border-radius: 8px;
     border: 1px solid #2a4060;
@@ -62,104 +92,26 @@
     font-size: 0.95rem;
     outline: none;
     transition: border 0.2s;
-  }
-  select:focus, input:focus { border-color: #f0c040; }
-  input::placeholder { color: #445566; }
-
-  .row { display: flex; gap: 10px; }
-  .row > div { flex: 1; }
-
-  .btn-calc {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(135deg, #c49000, #f0c040);
-    color: #1a1000;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    letter-spacing: 2px;
-    margin-top: 16px;
-    transition: opacity 0.2s;
-  }
-  .btn-calc:hover { opacity: 0.9; }
-  .btn-calc:active { transform: scale(0.98); }
-
-  .result-box {
-    background: #0d1a2e;
-    border-radius: 10px;
-    padding: 14px;
-    margin-top: 14px;
-    border: 1px solid #1a2e48;
-  }
-  .result-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 7px 0;
-    border-bottom: 1px solid #111c30;
-    font-size: 0.85rem;
-  }
-  .result-row:last-child { border-bottom: none; }
-  .result-label { color: #8899aa; }
-  .result-val  { font-weight: bold; font-size: 1rem; }
-  .gold  { color: #f0c040; }
-  .green { color: #4caf50; }
-  .red   { color: #ef5350; }
-  .blue  { color: #42a5f5; }
-  .white { color: #e0e0e0; }
-
-  .profit-box {
-    background: linear-gradient(135deg, #1a2a44, #111d33);
-    border: 1px solid #f0c04044;
-    border-radius: 10px;
-    padding: 16px;
-    margin-top: 12px;
     text-align: center;
   }
-  .profit-label { font-size: 0.75rem; color: #aa9966; letter-spacing: 1px; }
-  .profit-val   { font-size: 1.8rem; font-weight: bold; color: #f0c040; margin-top: 4px; }
+  select:focus, input:focus { border-color: #f0c040; }
+  input::placeholder { color: #445566; text-align:center; }
 
-  /* 記錄表格 */
-  .record-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.78rem;
-    margin-top: 10px;
+  .row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
   }
-  .record-table th {
-    text-align: left;
-    color: #aa9966;
-    font-weight: normal;
-    padding: 8px 6px;
-    border-bottom: 1px solid #1a2a40;
-    white-space: nowrap;
-  }
-  .record-table td {
-    padding: 8px 6px;
-    border-bottom: 1px solid #111c30;
-    vertical-align: top;
-  }
-  .record-table tr:last-child td { border-bottom: none; }
-  .num { text-align: right; font-weight: bold; white-space: nowrap; }
-  .record-empty { text-align: center; color: #556677; padding: 20px 0; font-size: 0.82rem; }
+  .row > div { flex:1; max-width: 160px; }
 
-  .btn-clear {
-    display: block;
-    width: 100%;
-    padding: 9px;
-    border-radius: 8px;
-    border: 1px solid #553333;
-    background: transparent;
-    color: #ee6666;
-    font-size: 0.82rem;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.2s;
+  .bigagent-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: flex-end;
   }
-  .btn-clear:hover { background: #331111; }
+  .bigagent-row select { max-width: 220px; }
+  .bigagent-row button { flex:0 0 auto; }
 
   .btn-add-agent {
     padding: 9px 14px;
@@ -175,121 +127,232 @@
   }
   .btn-add-agent:hover { background: #1a3355; }
 
+  .btn-calc {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 20px auto 0;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg,#c49000,#f0c040);
+    color: #1a1000;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: opacity 0.2s;
+  }
+  .btn-calc:hover { opacity:0.9; }
+
+  .hint { font-size:0.7rem; color:#556677; margin-top:4px; text-align:center; }
+
+  /* 結果 */
+  .result-box {
+    background: #0d1a2e;
+    border-radius: 10px;
+    padding: 14px 10px;
+    margin-top: 14px;
+    border: 1px solid #1a2e48;
+    text-align: left;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 6px;
+    border-bottom: 1px solid #111c30;
+    font-size: 0.85rem;
+  }
+  .result-row:last-child { border-bottom:none; }
+  .result-label { color:#8899aa; }
+  .result-val  { font-weight:bold; font-size:1rem; }
+  .gold  { color:#f0c040; }
+  .green { color:#4caf50; }
+  .red   { color:#ef5350; }
+
+  .profit-box {
+    background: linear-gradient(135deg,#1a2a44,#111d33);
+    border: 1px solid #f0c04044;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 12px;
+    text-align: center;
+  }
+  .profit-label { font-size:0.75rem; color:#aa9966; letter-spacing:1px; }
+  .profit-val   { font-size:1.8rem; font-weight:bold; color:#f0c040; margin-top:4px; }
+
+  /* 記錄表格 */
+  .record-wrap {
+    overflow-x:auto;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .record-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin: 0 auto;
+  }
+  .record-table th {
+    text-align: center;
+    color: #aa9966;
+    font-weight: normal;
+    padding: 8px 6px;
+    border-bottom: 1px solid #1a2a40;
+    white-space: nowrap;
+  }
+  .record-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #111c30;
+    text-align: center;
+  }
+  .record-table tr:last-child td { border-bottom:none; }
+  .num { text-align:right; font-weight:bold; white-space:nowrap; }
+  .record-empty { text-align:center; color:#556677; padding:24px 0; font-size:0.85rem; }
+
+  .btn-clear {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 14px auto 0;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid #553333;
+    background: transparent;
+    color: #ee6666;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-clear:hover { background:#331111; }
+
   .formula {
     font-size: 0.72rem;
     color: #556677;
     background: #0a1422;
     border-radius: 6px;
-    padding: 8px 10px;
-    margin-top: 10px;
-    line-height: 1.6;
+    padding: 10px 12px;
+    margin-top: 14px;
+    line-height: 1.7;
+    text-align: left;
   }
-  .formula b { color: #aa9966; }
+  .formula b { color:#aa9966; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🎰 業績獎金計算器</h1>
 
-  <!-- 輸入區 -->
-  <div class="card">
-    <div class="card-title"><span class="icon">📋</span> 計算資料</div>
+  <!-- 頁籤 -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchPage('calc')">🧮 計算</button>
+    <button class="tab" onclick="switchPage('records')">📊 記錄</button>
+  </div>
 
-    <label>日期</label>
-    <input type="date" id="rDate" id="rDate">
+  <!-- 第一頁：計算 -->
+  <div class="page active" id="pageCalc">
+    <h1>🎰 業績獎金計算器</h1>
 
-    <label>大代理</label>
-    <div class="row" style="align-items:flex-end;">
-      <div style="flex:1;">
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> 計算資料</div>
+
+      <label>日期</label>
+      <input type="date" id="rDate">
+
+      <label>大代理</label>
+      <div class="bigagent-row">
         <select id="bigName"></select>
-      </div>
-      <div style="flex:0 0 auto;">
         <button class="btn-add-agent" onclick="addBigAgent()" title="新增大代理">＋</button>
       </div>
-    </div>
 
-    <label>小代理名稱</label>
-    <input type="text" id="smallName" placeholder="例：小代理 A">
+      <label>小代理名稱</label>
+      <input type="text" id="smallName" placeholder="例：小代理 A">
 
-    <label>會員代號 / 名稱</label>
-    <input type="text" id="member" placeholder="例：VIP-001">
+      <label>會員代號 / 名稱</label>
+      <input type="text" id="member" placeholder="例：VIP-001">
 
-    <div class="row" style="margin-top:12px;">
-      <div>
-        <label>總 Theo（HKD）</label>
-        <input type="number" id="totalTheo" placeholder="例：5000000" min="0" step="1000">
+      <div class="row" style="margin-top:14px;">
+        <div>
+          <label>總 Theo（HKD）</label>
+          <input type="number" id="totalTheo" placeholder="例：5000000" min="0" step="1000">
+        </div>
+        <div>
+          <label>大代理抽成 %</label>
+          <input type="number" id="bigRate" value="12" min="0" max="100" step="0.1">
+        </div>
       </div>
-      <div>
-        <label>大代理抽成 %</label>
-        <input type="number" id="bigRate" value="12" min="0" max="100" step="0.1">
+      <div class="hint">大代理獎金 = Theo × 抽成%，再 × 0.94（扣除 6% 成本）</div>
+
+      <div style="margin-top:14px;">
+        <label>小代理抽成 %（從大代理獎金扣除）</label>
+        <input type="number" id="smallRate" value="10" min="0" max="100" step="0.1" style="max-width:160px;">
+        <div class="hint">小代理獎金 = Theo × 此比例%</div>
       </div>
-    </div>
-    <div class="hint">大代理獎金 = Theo × 抽成%，再 × 0.94（固定扣除 6% 成本）</div>
 
-    <div style="margin-top:12px;">
-      <label>小代理抽成 %（從大代理獎金中扣除）</label>
-      <input type="number" id="smallRate" value="10" min="0" max="100" step="0.1">
-      <div class="hint">小代理獎金 = Theo × 此比例%，從大代理實得中扣除</div>
+      <button class="btn-calc" onclick="doCalc()">計 算</button>
     </div>
 
-    <button class="btn-calc" onclick="doCalc()">計 算</button>
+    <!-- 計算結果 -->
+    <div class="card" id="resultCard" style="display:none;">
+      <div class="card-title"><span class="icon">🧮</span> 計算結果</div>
+
+      <div class="result-box">
+        <div class="result-row">
+          <span class="result-label">大代理獎金（未扣成本）</span>
+          <span class="result-val gold" id="rBigGross">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">扣除 6% 成本後實得</span>
+          <span class="result-val green" id="rBigNet">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">小代理獎金（<span id="rSmallName">—</span>）</span>
+          <span class="result-val red" id="rSmallBonus">—</span>
+        </div>
+      </div>
+
+      <div class="profit-box">
+        <div class="profit-label">🏆 大代理最終利潤</div>
+        <div class="profit-val" id="rBigProfit">—</div>
+      </div>
+
+      <div class="hint" style="margin-top:12px;">＊計算結果已自動存入「記錄」頁</div>
+    </div>
   </div>
 
-  <!-- 計算結果 -->
-  <div class="card" id="resultCard" style="display:none;">
-    <div class="card-title"><span class="icon">🧮</span> 計算結果</div>
+  <!-- 第二頁：記錄 -->
+  <div class="page" id="pageRecords">
+    <h1>📊 計算記錄</h1>
 
-    <div class="result-box">
-      <div class="result-row">
-        <span class="result-label">大代理獎金（未扣成本）</span>
-        <span class="result-val gold" id="rBigGross">—</span>
+    <div class="card">
+      <div class="record-wrap">
+        <table class="record-table" id="recordTable">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>大代理</th>
+              <th>會員</th>
+              <th>大代理<br>獎金</th>
+              <th>小代理<br>獎金</th>
+              <th>大代理<br>利潤</th>
+            </tr>
+          </thead>
+          <tbody id="recordBody"></tbody>
+        </table>
+        <div class="record-empty" id="emptyHint">尚無計算記錄<br>請先到「計算」頁按計算</div>
       </div>
-      <div class="result-row">
-        <span class="result-label">扣除 6% 成本後實得</span>
-        <span class="result-val green" id="rBigNet">—</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">小代理獎金（<span id="rSmallName">—</span>）</span>
-        <span class="result-val red" id="rSmallBonus">—</span>
+      <button class="btn-clear" onclick="clearRecords()">清除所有記錄</button>
+
+      <div class="formula">
+        <b>計算邏輯：</b><br>
+        大代理獎金　 ＝ 總 Theo × 大代理 %<br>
+        大代理實得　　＝ 大代理獎金 × 0.94（扣除 6% 成本）<br>
+        小代理獎金　　＝ 總 Theo × 小代理 %<br>
+        大代理最終利潤 ＝ 大代理實得 − 小代理獎金
       </div>
     </div>
-
-    <div class="profit-box">
-      <div class="profit-label">🏆 大代理最終利潤</div>
-      <div class="profit-val" id="rBigProfit">—</div>
-    </div>
-
-    <div class="hint" style="margin-top:12px;">＊計算結果已自動存入下方記錄表</div>
   </div>
 
-  <!-- 記錄表格 -->
-  <div class="card">
-    <div class="card-title"><span class="icon">📊</span> 計算記錄</div>
-    <div style="overflow-x:auto;">
-      <table class="record-table" id="recordTable">
-        <thead>
-          <tr>
-            <th>日期</th>
-            <th>大代理</th>
-            <th>會員</th>
-            <th class="num">大代理獎金</th>
-            <th class="num">小代理獎金</th>
-            <th class="num">大代理利潤</th>
-          </tr>
-        </thead>
-        <tbody id="recordBody"></tbody>
-      </table>
-    </div>
-    <div class="record-empty" id="emptyHint">尚無計算記錄，請先按「計算」</div>
-    <button class="btn-clear" onclick="clearRecords()">清除所有記錄</button>
-    <div class="formula">
-      <b>計算邏輯：</b><br>
-      大代理獎金　 ＝ 總 Theo × 大代理 %<br>
-      大代理實得　　＝ 大代理獎金 × 0.94（扣除 6% 成本）<br>
-      小代理獎金　　＝ 總 Theo × 小代理 %<br>
-      大代理最終利潤 ＝ 大代理實得 − 小代理獎金
-    </div>
-  </div>
 </div>
 
 <script>
@@ -297,22 +360,31 @@ const fmt = n => {
   if (n === null || n === undefined || isNaN(n)) return '—';
   return '$' + Math.round(n).toLocaleString('zh-HK');
 };
-
 const $ = id => document.getElementById(id);
 
-// 大代理名單（預設值，儲存在 localStorage）
+/* ── 頁面切換 ── */
+function switchPage(p) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+  if (p === 'calc') {
+    $('pageCalc').classList.add('active');
+    document.querySelectorAll('.tab')[0].classList.add('active');
+  } else {
+    $('pageRecords').classList.add('active');
+    document.querySelectorAll('.tab')[1].classList.add('active');
+    renderRecords();
+  }
+}
+
+/* ── 大代理選單 ── */
 function getBigAgents() {
   return JSON.parse(localStorage.getItem('bigAgents') || '["Alen","忠"]');
 }
-function saveBigAgents(list) {
-  localStorage.setItem('bigAgents', JSON.stringify(list));
-}
+function saveBigAgents(list) { localStorage.setItem('bigAgents', JSON.stringify(list)); }
 function renderBigAgentSelect() {
   const sel = $('bigName');
-  const list = getBigAgents();
-  sel.innerHTML = list.map(n => `<option value="${n}">${n}</option>`).join('');
+  sel.innerHTML = getBigAgents().map(n => `<option value="${n}">${n}</option>`).join('');
 }
-
 function addBigAgent() {
   const name = prompt('請輸入新增大代理名稱：');
   if (!name || !name.trim()) return;
@@ -325,32 +397,29 @@ function addBigAgent() {
   $('bigName').value = trimmed;
 }
 
-// 初始化日期為今天
+/* ── 初始化 ── */
 (function init() {
   const today = new Date().toISOString().split('T')[0];
   $('rDate').value = today;
   renderBigAgentSelect();
-  loadRecords();
 })();
 
+/* ── 計算 ── */
 function doCalc() {
-  const date     = $('rDate').value;
-  const bigName  = $('bigName').value;  // select 直接取 value
-  const smallNm  = $('smallName').value.trim() || '（未填）';
-  const member   = $('member').value.trim() || '（未填）';
-  const theo     = parseFloat($('totalTheo').value) || 0;
-  const bigRate  = parseFloat($('bigRate').value) || 0;
-  const smallRate= parseFloat($('smallRate').value) || 0;
-
+  const date      = $('rDate').value;
+  const bigName   = $('bigName').value;
+  const smallNm   = $('smallName').value.trim() || '（未填）';
+  const member    = $('member').value.trim() || '（未填）';
+  const theo      = parseFloat($('totalTheo').value) || 0;
+  const bigRate   = parseFloat($('bigRate').value) || 0;
+  const smallRate = parseFloat($('smallRate').value) || 0;
   if (theo <= 0) { alert('請輸入 Theo 金額'); return; }
 
-  // 計算
-  const bigGross    = theo * (bigRate / 100);
-  const bigNet      = bigGross * 0.94;
-  const smallBonus  = theo * (smallRate / 100);
-  const bigProfit   = bigNet - smallBonus;
+  const bigGross   = theo * (bigRate / 100);
+  const bigNet     = bigGross * 0.94;
+  const smallBonus = theo * (smallRate / 100);
+  const bigProfit  = bigNet - smallBonus;
 
-  // 顯示結果
   $('rBigGross').textContent   = fmt(bigGross);
   $('rBigNet').textContent     = fmt(bigNet);
   $('rSmallName').textContent  = smallNm;
@@ -358,37 +427,19 @@ function doCalc() {
   $('rBigProfit').textContent  = fmt(bigProfit);
   $('resultCard').style.display = 'block';
 
-  // 存入記錄
+  // 存記錄
   const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  records.unshift({
-    date,
-    bigName,
-    smallName: smallNm,
-    member,
-    theo,
-    bigRate,
-    smallRate,
-    bigGross,
-    bigNet,
-    smallBonus,
-    bigProfit
-  });
+  records.unshift({ date, bigName, smallName: smallNm, member, theo, bigRate, smallRate, bigGross, bigNet, smallBonus, bigProfit });
   localStorage.setItem('bonusRecords', JSON.stringify(records));
-  renderRecords();
 }
 
+/* ── 記錄表格 ── */
 function renderRecords() {
   const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
   const body    = $('recordBody');
   const empty   = $('emptyHint');
-
-  if (records.length === 0) {
-    body.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-
+  if (records.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
   body.innerHTML = records.map(r => `
     <tr>
       <td style="color:#8899aa;white-space:nowrap;">${r.date}</td>
@@ -396,12 +447,9 @@ function renderRecords() {
       <td style="color:#aaa;">${r.member}</td>
       <td class="num gold">${fmt(r.bigNet)}</td>
       <td class="num green">${fmt(r.smallBonus)}</td>
-      <td class="num ${r.bigProfit >= 0 ? 'gold' : 'red'}">${fmt(r.bigProfit)}</td>
-    </tr>
-  `).join('');
+      <td class="num ${r.bigProfit>=0?'gold':'red'}">${fmt(r.bigProfit)}</td>
+    </tr>`).join('');
 }
-
-function loadRecords() { renderRecords(); }
 
 function clearRecords() {
   if (!confirm('確定清除所有記錄？')) return;
