@@ -629,10 +629,9 @@ function claimRecord(idx) {
 }
 
 function extractProfit() {
-  const pwd = prompt('請輸入密碼確認提取：');
-  if (pwd !== '1234') { alert('密碼錯誤'); return; }
+  if (!confirm('確認已提取大代理利潤總額？')) return;
   alert('提取成功！請聯絡財務處理。');
-  // 這裡可以加實際提取邏輯（如寫入 Firebase 或標記已提取）
+  // 可加標記已提取的邏輯
 }
 function clearRecords() {
   if (!confirm('確定清除所有記錄？')) return;
