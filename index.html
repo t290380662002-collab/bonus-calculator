@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>業績獎金計算器</title>
+<!-- Firebase SDK (正確 CDN 網址) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   * { box-sizing: border-box; margin:0; padding:0; }
   body {
@@ -26,7 +29,7 @@
     overflow: hidden;
     border: 1px solid #1e3050;
   }
-  .tab {
+  .tab-btn {
     flex: 1;
     text-align: center;
     padding: 12px 0;
@@ -39,8 +42,8 @@
     transition: background 0.2s, color 0.2s;
     border: none;
   }
-  .tab.active { background: #1a2e50; color: #f0c040; }
-  .tab:first-child { border-right: 1px solid #1e3050; }
+  .tab-btn.active { background: #1a2e50; color: #f0c040; }
+  .tab-btn:first-child { border-right: 1px solid #1e3050; }
 
   .page { display:none; }
   .page.active { display:block; }
@@ -103,7 +106,7 @@
   .bigagent-row select { max-width: 220px; }
   .bigagent-row button { flex:0 0 auto; }
 
-  .btn-add-agent {
+  .btn-add {
     padding: 9px 14px;
     border-radius: 8px;
     border: 1px solid #2a6080;
@@ -115,7 +118,7 @@
     transition: background 0.2s;
     white-space: nowrap;
   }
-  .btn-add-agent:hover { background: #1a3355; }
+  .btn-add:hover { background: #1a3355; }
 
   .btn-calc {
     display: block;
@@ -163,7 +166,7 @@
 
   .profit-box {
     background: linear-gradient(135deg,#1a2a44,#111d33);
-    border: 1px solid #f0c04044;
+    border: 1px solid rgba(240,192,64,0.27);
     border-radius: 10px;
     padding: 16px;
     margin-top: 12px;
@@ -222,7 +225,7 @@
 
   /* 總和列 */
   .record-table .total-row td {
-    border-top: 2px solid #f0c04088;
+    border-top: 2px solid rgba(240,192,64,0.53);
     padding-top: 10px;
     font-weight: bold;
     color: #f0c040;
@@ -256,15 +259,83 @@
     text-align: left;
   }
   .formula b { color:#aa9966; }
+
+  /* 同步狀態 */
+  .sync-bar {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #556677;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .sync-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  .sync-dot.offline { background: #ef5350; animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  /* 月曆 */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .cal-title {
+    font-size: 1.05rem;
+    color: #f0c040;
+    font-weight: bold;
+    min-width: 120px;
+    cursor: pointer;
+  }
+  .cal-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    max-width: 340px;
+    margin: 8px auto 0;
+  }
+  .cal-day {
+    width: 38px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 6px; cursor: pointer; font-size: 0.76rem;
+  }
+  .cal-day.has-data { background:#1a2e50; color:#f0c040; font-weight:bold; }
+  .cal-day.no-data  { color:#556677; }
+  .cal-day.is-today { border:1px solid #f0c040; }
+  .cal-day:hover { background:#1a3355; }
+  .cal-day.empty { pointer-events:none; }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="container">
 
   <!-- 頁籤 -->
   <div class="tabs">
-    <button class="tab active" onclick="switchPage('calc')">🧮 計算</button>
-    <button class="tab" onclick="switchPage('records')">📊 記錄</button>
+    <button class="tab-btn active" onclick="switchPage('calc')">🧮 計算</button>
+    <button class="tab-btn" onclick="switchPage('records')">📊 記錄</button>
+  </div>
+  <div id="syncBar" style="text-align:center;color:#888;font-size:12px;margin-bottom:8px;">
+    <span id="syncDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-right:6px;"></span>
+    <span id="syncText">即時同步中</span>
+  </div>
+
+
+  <!-- 同步狀態 -->
+  <div class="sync-bar" id="syncBar">
+    <span class="sync-dot" id="syncDot"></span>
+    <span id="syncText">即時同步中</span>
   </div>
 
   <!-- 第一頁：計算 -->
@@ -280,7 +351,7 @@
       <label>大代理</label>
       <div class="bigagent-row">
         <select id="bigName"></select>
-        <button class="btn-add-agent" onclick="addBigAgent()" title="新增大代理">＋</button>
+        <button class="btn-add" onclick="addBigAgent()" title="新增大代理">＋</button>
       </div>
 
       <label>小代理名稱</label>
@@ -334,7 +405,7 @@
         <div class="profit-val" id="rBigProfit">—</div>
       </div>
 
-      <div class="hint" style="margin-top:12px;">＊計算結果已自動存入「記錄」頁</div>
+      <div class="hint" style="margin-top:12px;">＊計算結果已自動同步至所有人</div>
     </div>
   </div>
 
@@ -343,20 +414,21 @@
     <h1>📊 計算記錄</h1>
 
     <div class="card">
-      <!-- 月曆選擇器（折疊式） -->
+      <!-- 月曆選擇器 -->
       <div style="text-align:center; margin-bottom:14px;">
-        <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
-          <button class="btn-add-agent" onclick="changeMonth(-1)" title="上個月">◀</button>
-          <span id="calTitle" onclick="toggleCal()" style="font-size:1.1rem; color:#f0c040; font-weight:bold; min-width:140px; display:inline-block; cursor:pointer;"></span>
-          <button class="btn-add-agent" onclick="changeMonth(1)" title="下個月">▶</button>
+        <div class="cal-header">
+          <button class="btn-add" onclick="changeMonth(-1)" title="上個月">◀</button>
+          <span class="cal-title" id="calTitle" onclick="toggleCal()">—</span>
+          <button class="btn-add" onclick="changeMonth(1)" title="下個月">▶</button>
         </div>
-        <div id="calGrid" style="display:none; flex-wrap:wrap; gap:4px; justify-content:center; max-width:340px; margin:8px auto 0;"></div>
+        <div id="calGrid" class="cal-grid" style="display:none;"></div>
         <div style="margin-top:10px; display:flex; gap:8px; justify-content:center;">
-          <button class="tab" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectToday()">本月</button>
-          <button class="tab" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectYear()">本年</button>
-          <button class="tab" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectAll()">全部</button>
+          <button class="tab-btn" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectToday()">本月</button>
+          <button class="tab-btn" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectYear()">本年</button>
+          <button class="tab-btn" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectAll()">全部</button>
         </div>
       </div>
+
       <div class="record-wrap">
         <table class="record-table" id="recordTable">
           <thead>
@@ -391,161 +463,176 @@
 </div>
 
 <script>
-const fmt = n => {
+// ===== Firebase 初始化 =====
+const FB_CONFIG = {
+  apiKey: "AIzaSyCPANJG8suKEAvb5RL8fdKsSpquiaDgAD4",
+  authDomain: "anget01.firebaseapp.com",
+  databaseURL: "https://anget01-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "anget01",
+  storageBucket: "anget01.firebasestorage.app",
+  messagingSenderId: "714232491975",
+  appId: "1:714232491975:web:f26bb5250d2676a99173e2"
+};
+firebase.initializeApp(FB_CONFIG);
+const DB = firebase.database();
+const REC_REF = DB.ref("bonusRecords");
+
+// ===== 全域變數 =====
+let allRecords = [];
+
+// ===== 同步狀態 =====
+function setSync(online) {
+  const dot = document.getElementById("syncDot");
+  const txt = document.getElementById("syncText");
+  if (!dot || !txt) return;
+  if (online) { dot.style.background = "#4caf50"; txt.textContent = "即時同步中"; }
+  else { dot.style.background = "#f44336"; txt.textContent = "離線模式"; }
+}
+
+// ===== Firebase 即時監聽 =====
+REC_REF.orderByChild("createdAt").on("value", function(snap) {
+  const data = snap.val() || {};
+  allRecords = [];
+  Object.keys(data).forEach(function(key) {
+    var v = data[key]; v._key = key; allRecords.push(v);
+  });
+  if (typeof renderRecords === "function") renderRecords();
+  if (typeof renderCal === "function") renderCal();
+  setSync(true);
+}, function(err) { setSync(false); });
+
+// ===== 劫持 doCalc 寫入 Firebase =====
+const _origDoCalc = window.doCalc;
+window.doCalc = function() {
+  // 先執行原始計算（它會處理 localStorage 和顯示結果）
+  if (typeof _origDoCalc === "function") _origDoCalc();
+  
+  // 再寫入 Firebase
+  const date    = document.getElementById("rDate").value;
+  const bigName   = document.getElementById("bigName").value;
+  const smallNm   = document.getElementById("smallName").value.trim() || "（未填）";
+  const member    = document.getElementById("member").value.trim() || "（未填）";
+  const theo      = parseFloat(document.getElementById("totalTheo").value) || 0;
+  const bigRate   = parseFloat(document.getElementById("bigRate").value) || 0;
+  const smallRate = parseFloat(document.getElementById("smallRate").value) || 0;
+  if (theo <= 0) return;
+  const bigGross   = theo * (bigRate / 100);
+  const bigNet     = bigGross * 0.94;
+  const smallBonus = theo * (smallRate / 100);
+  const bigProfit  = bigNet - smallBonus;
+  const rec = {
+    date: date, bigName: bigName, smallName: smallNm, member: member,
+    theo: theo, bigRate: bigRate, smallRate: smallRate,
+    bigGross: bigGross, bigNet: bigNet, smallBonus: smallBonus, bigProfit: bigProfit,
+    claimed: false, createdAt: firebase.database.ServerValue.TIMESTAMP
+  };
+  REC_REF.push(rec, function(err) {
+    if (err) { alert("同步失敗！"); setSync(false); }
+  });
+};
+
+// ===== 劫持 claimRecord / deleteRecord =====
+window.claimRecord = function(key) {
+  DB.ref("bonusRecords/" + key).update({ claimed: true }, function(err) {
+    if (err) { alert("同步失敗！"); setSync(false); }
+  });
+};
+window.deleteRecord = function(key) {
+  if (!confirm("確定刪除這筆記錄？")) return;
+  DB.ref("bonusRecords/" + key).remove(function(err) {
+    if (err) { alert("同步失敗！"); setSync(false); }
+  });
+};
+window.clearRecords = function() {
+  if (!confirm("確定清除所有記錄？此操作不可撤銷！")) return;
+  if (!confirm("再次確認：清除後所有裝置的資料都會消失，確定？")) return;
+  REC_REF.remove(function(err) {
+    if (err) { alert("同步失敗！"); setSync(false); }
+  });
+};
+
+// ===== 原始 script 內容（劫持 renderRecords/renderCal） =====
+/* ===== Firebase 初始化 ===== */
+const FB_CONFIG = {
+  apiKey: "AIzaSyCPANJG8suKEAvb5RL8fdKsSpquiaDgAD4",
+  authDomain: "anget01.firebaseapp.com",
+  databaseURL: "https://anget01-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "anget01",
+  storageBucket: "anget01.firebasestorage.app",
+  messagingSenderId: "714232491975",
+  appId: "1:714232491975:web:f26bb5250d2676a99173e2"
+};
+firebase.initializeApp(FB_CONFIG);
+const DB = firebase.database();
+const REC_REF = DB.ref('bonusRecords');
+
+const fmt = function(n) {
   if (n === null || n === undefined || isNaN(n)) return '—';
   return '$' + Math.round(n).toLocaleString('zh-HK');
 };
-const $ = id => document.getElementById(id);
+const $ = function(id) { return document.getElementById(id); };
 
-/* ── 頁面切換 ── */
+/* ===== 同步狀態 ===== */
+function setSync(online) {
+  var dot = $('syncDot'), txt = $('syncText');
+  if (online) {
+    dot.classList.remove('offline');
+    txt.textContent = '即時同步中';
+  } else {
+    dot.classList.add('offline');
+    txt.textContent = '離線模式（僅本機）';
+  }
+}
+
+/* ===== 頁面切換 ===== */
 function switchPage(p) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+  var tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.page').forEach(function(pg) { pg.classList.remove('active'); });
   if (p === 'calc') {
     $('pageCalc').classList.add('active');
-    document.querySelectorAll('.tab')[0].classList.add('active');
+    tabs[0].classList.add('active');
   } else {
     $('pageRecords').classList.add('active');
-    document.querySelectorAll('.tab')[1].classList.add('active');
+    tabs[1].classList.add('active');
     renderRecords();
   }
 }
 
-/* ── 大代理選單 ── */
+/* ===== 大代理選單 ===== */
 function getBigAgents() {
   return JSON.parse(localStorage.getItem('bigAgents') || '["Alen","忠"]');
 }
 function saveBigAgents(list) { localStorage.setItem('bigAgents', JSON.stringify(list)); }
 function renderBigAgentSelect() {
-  const sel = $('bigName');
-  sel.innerHTML = getBigAgents().map(n => `<option value="${n}">${n}</option>`).join('');
+  var sel = $('bigName');
+  sel.innerHTML = getBigAgents().map(function(n) { return '<option value="' + n + '">' + n + '</option>'; }).join('');
 }
 function addBigAgent() {
-  const name = prompt('請輸入新增大代理名稱：');
+  var name = prompt('請輸入新增大代理名稱：');
   if (!name || !name.trim()) return;
-  const list = getBigAgents();
-  const trimmed = name.trim();
-  if (list.includes(trimmed)) { alert('該代理已存在'); return; }
+  var list = getBigAgents();
+  var trimmed = name.trim();
+  if (list.indexOf(trimmed) !== -1) { alert('該代理已存在'); return; }
   list.push(trimmed);
   saveBigAgents(list);
   renderBigAgentSelect();
   $('bigName').value = trimmed;
 }
 
-/* ── 初始化 ── */
-(function init() {
-  const today = new Date().toISOString().split('T')[0];
-  $('rDate').value = today;
-  renderBigAgentSelect();
-})();
+/* ===== 月曆 ===== */
+var calYear, calMonth;
+var MONTH_TITLES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+var filterDate = '';  // ''=本月, '__YEAR__'=本年, 'YYYY-MM-DD'=單日
 
-/* ── 計算 ── */
-function doCalc() {
-  const date      = $('rDate').value;
-  const bigName   = $('bigName').value;
-  const smallNm   = $('smallName').value.trim() || '（未填）';
-  const member    = $('member').value.trim() || '（未填）';
-  const theo      = parseFloat($('totalTheo').value) || 0;
-  const bigRate   = parseFloat($('bigRate').value) || 0;
-  const smallRate = parseFloat($('smallRate').value) || 0;
-  if (theo <= 0) { alert('請輸入 Theo 金額'); return; }
-
-  const bigGross   = theo * (bigRate / 100);
-  const bigNet     = bigGross * 0.94;
-  const smallBonus = theo * (smallRate / 100);
-  const bigProfit  = bigNet - smallBonus;
-
-  $('rBigGross').textContent   = fmt(bigGross);
-  $('rBigNet').textContent     = fmt(bigNet);
-  $('rSmallName').textContent  = smallNm;
-  $('rSmallBonus').textContent = fmt(smallBonus);
-  $('rBigProfit').textContent  = fmt(bigProfit);
-  $('resultCard').style.display = 'block';
-
-  // 存記錄（加入 claimed 欄位）
-  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  records.unshift({ date, bigName, smallName: smallNm, member, theo, bigRate, smallRate, bigGross, bigNet, smallBonus, bigProfit, claimed: false });
-  localStorage.setItem('bonusRecords', JSON.stringify(records));
-}
-
-/* ── 記錄表格 ── */
-function renderRecords() {
-  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  const body    = $('recordBody');
-  const empty   = $('emptyHint');
-
-  // 讀取篩選條件
-  const filter = localStorage.getItem('filterDate') || '';
-  let filtered = records;
-  if (filter === '__YEAR__') {
-    const y = new Date().getFullYear().toString();
-    filtered = records.filter(r => r.date && r.date.startsWith(y));
-  } else if (filter) {
-    filtered = records.filter(r => r.date === filter);
-  }
-
-  // 更新月曆高亮
-  const fDate = localStorage.getItem('filterDate') || '';
-  if (fDate && fDate !== '__YEAR__') {
-    // 解析選擇日期，同步月曆
-    const parts = fDate.split('-');
-    if (parts.length === 3) {
-      calYear  = parseInt(parts[0]);
-      calMonth = parseInt(parts[1]) - 1;
-      renderCal();
-    }
-  }
-
-  if (filtered.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-
-  // 各列（記錄原始 index）
-  let html = '';
-  filtered.forEach((r, i) => {
-    // 找到原始 index
-    const origIdx = records.indexOf(r);
-    html += `
-    <tr class="${r.claimed ? 'claimed-row' : ''}">
-      <td style="color:#8899aa;white-space:nowrap;">${r.date}</td>
-      <td style="color:#88c0f0;">${r.bigName}</td>
-      <td style="color:#aaa;">${r.member}</td>
-      <td style="color:#a0d0a0;">${r.smallName}</td>
-      <td class="num" style="color:#aaa;">${fmt(r.theo)}</td>
-      <td class="num gold">${fmt(r.bigNet)}</td>
-      <td class="num green">${fmt(r.smallBonus)}</td>
-      <td class="num ${r.bigProfit>=0?'gold':'red'}">${fmt(r.bigProfit)}</td>
-      <td>
-        ${r.claimed
-          ? '<span class="btn-claim claimed">已提領</span>'
-          : `<button class="btn-claim" onclick="claimRecord(${origIdx})">提領</button>`
-        }
-        <button class="btn-clear" style="margin-left:4px; padding:2px 8px; display:inline-block;" onclick="deleteRecord(${origIdx})">刪除</button>
-      </td>
-    </tr>`;
-  });
-
-  // 總和列（只顯示大代理利潤＋提取按鈕）
-  const totalProfit  = filtered.reduce((s,r) => s + (r.bigProfit ||0), 0);
-  html += `
-    <tr class="total-row">
-      <td colspan="6" class="total-label" style="text-align:right;">總和大代理利潤：</td>
-      <td class="num ${totalProfit>=0?'gold':'red'}" style="font-size:1.1rem;">${fmt(totalProfit)}</td>
-      <td><button class="btn-claim" onclick="extractProfit()" style="border-color:#f0c040; color:#f0c040;">提取</button></td>
-    </tr>`;
-
-  body.innerHTML = html;
-}
-
-/* ── 月曆選擇器 ── */
-let calYear, calMonth;
 function initCal() {
-  const now = new Date();
+  var now = new Date();
   calYear  = now.getFullYear();
-  calMonth = now.getMonth(); // 0-index
+  calMonth = now.getMonth();
   renderCal();
 }
 function toggleCal() {
-  const g = $('calGrid');
+  var g = $('calGrid');
   g.style.display = g.style.display === 'none' ? 'flex' : 'none';
 }
 function changeMonth(delta) {
@@ -555,102 +642,203 @@ function changeMonth(delta) {
   renderCal();
 }
 function renderCal() {
-  const titles = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  $('calTitle').textContent = calYear + '年 ' + titles[calMonth];
-
-  const grid = $('calGrid');
-  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  const daysWithData = new Set(records.map(r => r.date));
-
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-
-  let html = '';
-  // 空白佔位
-  for (let i=0; i<firstDay; i++) html += '<span style="width:40px;display:inline-block;"></span>';
-  for (let d=1; d<=daysInMonth; d++) {
-    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const hasData = daysWithData.has(ds);
-    const isToday = ds === new Date().toISOString().split('T')[0];
-    html += `<span onclick="selectDate('${ds}')" style="
-      width:40px; height:32px; display:inline-flex; align-items:center; justify-content:center;
-      border-radius:6px; cursor:pointer; font-size:0.78rem;
-      ${hasData ? 'background:#1a2e50; color:#f0c040; font-weight:bold;' : 'color:#556677;'}
-      ${isToday ? 'border:1px solid #f0c040;' : ''}
-    " title="${ds}">${d}</span>`;
+  $('calTitle').textContent = calYear + '年 ' + MONTH_TITLES[calMonth];
+  var daysWithData = {};
+  allRecords.forEach(function(r) {
+    if (r && r.date) daysWithData[r.date] = true;
+  });
+  var firstDay = new Date(calYear, calMonth, 1).getDay();
+  var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  var html = '';
+  for (var i = 0; i < firstDay; i++) html += '<span class="cal-day empty"></span>';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var ds = calYear + '-' + String(calMonth + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var hasData = !!daysWithData[ds];
+    var isToday = ds === (new Date().toISOString().split('T')[0]);
+    var cls = 'cal-day';
+    if (hasData) cls += ' has-data'; else cls += ' no-data';
+    if (isToday) cls += ' is-today';
+    html += '<span class="' + cls + '" onclick="selectDate(\'' + ds + '\')">' + d + '</span>';
   }
-  grid.innerHTML = html;
+  $('calGrid').innerHTML = html;
 }
 function selectDate(dateStr) {
-  // 單選該日，畐換 filterDate / 存入 localStorage 供 renderRecords 用
-  const current = localStorage.getItem('filterDate');
-  localStorage.setItem('filterDate', current === dateStr ? '' : dateStr);
+  filterDate = dateStr;
   renderRecords();
 }
 function selectToday() {
-  const now = new Date();
+  var now = new Date();
   calYear  = now.getFullYear();
   calMonth = now.getMonth();
-  localStorage.setItem('filterDate', new Date().toISOString().split('T')[0]);
+  filterDate = '';
   renderCal();
   $('calGrid').style.display = 'flex';
   renderRecords();
 }
 function selectYear() {
-  // 篩選本年
-  calYear  = new Date().getFullYear();
-  calMonth = new Date().getMonth();
-  localStorage.setItem('filterDate', '__YEAR__');
-  renderCal();
+  filterDate = '__YEAR__';
   renderRecords();
 }
 function selectAll() {
-  localStorage.setItem('filterDate', '');
-  renderRecords();
-}
-// 初始化
-initCal();
-
-/* ── 日期篩選切換 ── */
-function setDateFilter(mode) {
-  $('btnAll').classList.remove('active');
-  $('btnMonth').classList.remove('active');
-  if (mode === 'month') {
-    $('btnMonth').classList.add('active');
-  } else {
-    $('btnAll').classList.add('active');
-  }
-  renderRecords();
-}
-// 預設「本月」
-setDateFilter('month');
-
-function claimRecord(idx) {
-  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  if (idx < 0 || idx >= records.length) return;
-  records[idx].claimed = true;
-  localStorage.setItem('bonusRecords', JSON.stringify(records));
+  filterDate = '';
   renderRecords();
 }
 
-function deleteRecord(idx) {
+/* ===== 篩選記錄 ===== */
+function getFiltered() {
+  var now = new Date();
+  return allRecords.filter(function(r) {
+    if (!r || !r.date) return false;
+    if (filterDate === '__YEAR__') return r.date.indexOf(String(now.getFullYear())) === 0;
+    if (filterDate) return r.date === filterDate;
+    // 預設：本月
+    var d = new Date(r.date);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }).sort(function(a,b) { return (b.createdAt||0) - (a.createdAt||0); });
+}
+
+/* ===== 計算 ===== */
+function doCalc() {
+  var date      = $('rDate').value;
+  var bigName   = $('bigName').value;
+  var smallNm   = $('smallName').value.trim() || '（未填）';
+  var member    = $('member').value.trim() || '（未填）';
+  var theo      = parseFloat($('totalTheo').value) || 0;
+  var bigRate   = parseFloat($('bigRate').value) || 0;
+  var smallRate = parseFloat($('smallRate').value) || 0;
+  if (theo <= 0) { alert('請輸入 Theo 金額'); return; }
+
+  var bigGross   = theo * (bigRate / 100);
+  var bigNet     = bigGross * 0.94;
+  var smallBonus = theo * (smallRate / 100);
+  var bigProfit  = bigNet - smallBonus;
+
+  $('rBigGross').textContent   = fmt(bigGross);
+  $('rBigNet').textContent     = fmt(bigNet);
+  $('rSmallName').textContent  = smallNm;
+  $('rSmallBonus').textContent = fmt(smallBonus);
+  $('rBigProfit').textContent  = fmt(bigProfit);
+  $('resultCard').style.display = 'block';
+
+  var rec = {
+    date: date,
+    bigName: bigName,
+    smallName: smallNm,
+    member: member,
+    theo: theo,
+    bigRate: bigRate,
+    smallRate: smallRate,
+    bigGross: bigGross,
+    bigNet: bigNet,
+    smallBonus: smallBonus,
+    bigProfit: bigProfit,
+    claimed: false,
+    createdAt: firebase.database.ServerValue.TIMESTAMP
+  };
+  REC_REF.push(rec, function(err) {
+    if (err) { alert('同步失敗，請檢查網路！'); setSync(false); }
+  });
+}
+
+/* ===== Firebase 即時監聽 ===== */
+var allRecords = [];
+REC_REF.orderByChild('createdAt').on('value', function(snap) {
+  var data = snap.val() || {};
+  allRecords = [];
+  Object.keys(data).forEach(function(key) {
+    var v = data[key];
+    v._key = key;
+    allRecords.push(v);
+  });
+  renderRecords();
+  renderCal();
+  setSync(true);
+}, function(err) { console.error(err); setSync(false); });
+
+/* ===== 記錄表格 ===== */
+function renderRecords() {
+  var list   = getFiltered();
+  var body   = $('recordBody');
+  var empty  = $('emptyHint');
+  if (list.length === 0) { body.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  var html = '';
+  list.forEach(function(r) {
+    html += '<tr class="' + (r.claimed ? 'claimed-row' : '') + '">' +
+      '<td style="color:#8899aa;white-space:nowrap;">' + (r.date||'—') + '</td>' +
+      '<td style="color:#88c0f0;">' + (r.bigName||'—') + '</td>' +
+      '<td style="color:#aaa;">' + (r.member||'—') + '</td>' +
+      '<td style="color:#a0d0a0;">' + (r.smallName||'—') + '</td>' +
+      '<td class="num" style="color:#aaa;">' + fmt(r.theo) + '</td>' +
+      '<td class="num gold">' + fmt(r.bigNet) + '</td>' +
+      '<td class="num green">' + fmt(r.smallBonus) + '</td>' +
+      '<td class="num ' + (r.bigProfit>=0?'gold':'red') + '">' + fmt(r.bigProfit) + '</td>' +
+      '<td>' +
+        (r.claimed
+          ? '<span class="btn-claim claimed">已提領</span>'
+          : '<button class="btn-claim" onclick="claimRecord(\'' + r._key + '\')">提領</button>'
+        ) +
+        '<button class="btn-clear" style="margin-left:4px; padding:2px 8px; display:inline-block;" onclick="deleteRecord(\'' + r._key + '\')">刪除</button>' +
+      '</td>' +
+    '</tr>';
+  });
+
+  var totalProfit = 0;
+  list.forEach(function(r) { totalProfit += (r.bigProfit || 0); });
+  html += '<tr class="total-row">' +
+    '<td colspan="6" class="total-label" style="text-align:right;">總和大代理利潤：</td>' +
+    '<td class="num ' + (totalProfit>=0?'gold':'red') + '" style="font-size:1.1rem;">' + fmt(totalProfit) + '</td>' +
+    '<td><button class="btn-claim" onclick="extractProfit()" style="border-color:#f0c040; color:#f0c040;">提取</button></td>' +
+    '</tr>';
+  body.innerHTML = html;
+}
+
+/* ===== 提領 / 刪除 ===== */
+function claimRecord(key) {
+  var updates = {};
+  updates['/claimed'] = true;
+  DB.ref('bonusRecords/' + key).update({ claimed: true }, function(err) {
+    if (err) { alert('同步失敗！'); setSync(false); }
+  });
+}
+function deleteRecord(key) {
   if (!confirm('確定刪除這筆記錄？')) return;
-  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  if (idx < 0 || idx >= records.length) return;
-  records.splice(idx, 1);
-  localStorage.setItem('bonusRecords', JSON.stringify(records));
-  renderRecords();
+  DB.ref('bonusRecords/' + key).remove(function(err) {
+    if (err) { alert('同步失敗！'); setSync(false); }
+  });
 }
 function extractProfit() {
   if (!confirm('確認已提取大代理利潤總額？')) return;
   alert('提取成功！請聯絡財務處理。');
-  // 可加標記已提取的邏輯
 }
 function clearRecords() {
-  if (!confirm('確定清除所有記錄？')) return;
-  localStorage.removeItem('bonusRecords');
-  renderRecords();
+  if (!confirm('確定清除所有記錄？此操作不可撤銷！')) return;
+  if (!confirm('再次確認：清除後所有裝置的資料都會消失，確定？')) return;
+  REC_REF.remove(function(err) {
+    if (err) { alert('同步失敗！'); setSync(false); }
+  });
 }
+
+/* ===== 初始化 ===== */
+(function init() {
+  var today = new Date().toISOString().split('T')[0];
+  $('rDate').value = today;
+  renderBigAgentSelect();
+  initCal();
+  // 預設：顯示本月記錄
+  filterDate = '';
+  // 如果 Firebase 已載入則 renderRecords 會被 on('value') 呼叫
+})();
+
+// ===== 初始化 =====
+(function(){
+  const today = new Date().toISOString().split("T")[0];
+  if (document.getElementById("rDate")) document.getElementById("rDate").value = today;
+  if (typeof renderBigAgentSelect === "function") renderBigAgentSelect();
+  if (typeof initCal === "function") initCal();
+})();
+
 </script>
 </body>
 </html>
