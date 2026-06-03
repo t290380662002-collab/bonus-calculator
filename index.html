@@ -45,7 +45,6 @@
   .page { display:none; }
   .page.active { display:block; }
 
-  /* 標題 */
   h1 {
     text-align: center;
     font-size: 1.4rem;
@@ -97,19 +96,10 @@
   select:focus, input:focus { border-color: #f0c040; }
   input::placeholder { color: #445566; text-align:center; }
 
-  .row {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-  }
+  .row { display: flex; gap: 10px; justify-content: center; }
   .row > div { flex:1; max-width: 160px; }
 
-  .bigagent-row {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    align-items: flex-end;
-  }
+  .bigagent-row { display: flex; gap: 8px; justify-content: center; align-items: flex-end; }
   .bigagent-row select { max-width: 220px; }
   .bigagent-row button { flex:0 0 auto; }
 
@@ -183,11 +173,7 @@
   .profit-val   { font-size:1.8rem; font-weight:bold; color:#f0c040; margin-top:4px; }
 
   /* 記錄表格 */
-  .record-wrap {
-    overflow-x:auto;
-    margin-top: 10px;
-    text-align: center;
-  }
+  .record-wrap { overflow-x:auto; margin-top: 10px; text-align:center; }
   .record-table {
     width: 100%;
     border-collapse: collapse;
@@ -206,10 +192,42 @@
     padding: 8px 6px;
     border-bottom: 1px solid #111c30;
     text-align: center;
+    vertical-align: middle;
   }
   .record-table tr:last-child td { border-bottom:none; }
   .num { text-align:right; font-weight:bold; white-space:nowrap; }
   .record-empty { text-align:center; color:#556677; padding:24px 0; font-size:0.85rem; }
+
+  /* 提領按鈕 */
+  .btn-claim {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #2a6040;
+    background: #0a2218;
+    color: #66d0a0;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+  .btn-claim:hover { background: #1a3a28; }
+  .btn-claim.claimed {
+    border-color: #333;
+    background: #111;
+    color: #556655;
+    cursor: default;
+    text-decoration: line-through;
+  }
+  .claimed-row td { opacity: 0.45; }
+
+  /* 總和列 */
+  .record-table .total-row td {
+    border-top: 2px solid #f0c04088;
+    padding-top: 10px;
+    font-weight: bold;
+    color: #f0c040;
+  }
+  .total-label { text-align:right; color:#aa9966; }
 
   .btn-clear {
     display: block;
@@ -335,6 +353,7 @@
               <th>大代理<br>獎金</th>
               <th>小代理<br>獎金</th>
               <th>大代理<br>利潤</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody id="recordBody"></tbody>
@@ -427,9 +446,9 @@ function doCalc() {
   $('rBigProfit').textContent  = fmt(bigProfit);
   $('resultCard').style.display = 'block';
 
-  // 存記錄
+  // 存記錄（加入 claimed 欄位）
   const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
-  records.unshift({ date, bigName, smallName: smallNm, member, theo, bigRate, smallRate, bigGross, bigNet, smallBonus, bigProfit });
+  records.unshift({ date, bigName, smallName: smallNm, member, theo, bigRate, smallRate, bigGross, bigNet, smallBonus, bigProfit, claimed: false });
   localStorage.setItem('bonusRecords', JSON.stringify(records));
 }
 
@@ -440,15 +459,46 @@ function renderRecords() {
   const empty   = $('emptyHint');
   if (records.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
-  body.innerHTML = records.map(r => `
-    <tr>
+
+  // 各列
+  let html = records.map((r, i) => `
+    <tr class="${r.claimed ? 'claimed-row' : ''}">
       <td style="color:#8899aa;white-space:nowrap;">${r.date}</td>
       <td style="color:#88c0f0;">${r.bigName}</td>
       <td style="color:#aaa;">${r.member}</td>
       <td class="num gold">${fmt(r.bigNet)}</td>
       <td class="num green">${fmt(r.smallBonus)}</td>
       <td class="num ${r.bigProfit>=0?'gold':'red'}">${fmt(r.bigProfit)}</td>
+      <td>
+        ${r.claimed
+          ? '<span class="btn-claim claimed">已提領</span>'
+          : `<button class="btn-claim" onclick="claimRecord(${i})">提領</button>`
+        }
+      </td>
     </tr>`).join('');
+
+  // 總和列
+  const totalBig     = records.reduce((s,r) => s + (r.bigNet    ||0), 0);
+  const totalSmall   = records.reduce((s,r) => s + (r.smallBonus||0), 0);
+  const totalProfit  = records.reduce((s,r) => s + (r.bigProfit ||0), 0);
+  html += `
+    <tr class="total-row">
+      <td colspan="3" class="total-label">總和</td>
+      <td class="num">${fmt(totalBig)}</td>
+      <td class="num">${fmt(totalSmall)}</td>
+      <td class="num ${totalProfit>=0?'gold':'red'}">${fmt(totalProfit)}</td>
+      <td></td>
+    </tr>`;
+
+  body.innerHTML = html;
+}
+
+function claimRecord(idx) {
+  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
+  if (idx < 0 || idx >= records.length) return;
+  records[idx].claimed = true;
+  localStorage.setItem('bonusRecords', JSON.stringify(records));
+  renderRecords();
 }
 
 function clearRecords() {
