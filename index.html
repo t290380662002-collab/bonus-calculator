@@ -15,7 +15,7 @@
     justify-content: center;
     padding: 24px 12px 60px;
   }
-  .container { width: 100%; max-width: 560px; }
+  .container { width: 100%; max-width: 580px; }
 
   h1 {
     text-align: center;
@@ -52,7 +52,7 @@
   }
   label:first-of-type { margin-top: 0; }
 
-  select, input[type="number"], input[type="text"] {
+  select, input[type="number"], input[type="text"], input[type="date"] {
     width: 100%;
     padding: 9px 11px;
     border-radius: 8px;
@@ -69,115 +69,97 @@
   .row { display: flex; gap: 10px; }
   .row > div { flex: 1; }
 
-  /* 小代理卡片 */
-  .agent-card {
+  .btn-calc {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #c49000, #f0c040);
+    color: #1a1000;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 2px;
+    margin-top: 16px;
+    transition: opacity 0.2s;
+  }
+  .btn-calc:hover { opacity: 0.9; }
+  .btn-calc:active { transform: scale(0.98); }
+
+  .result-box {
     background: #0d1a2e;
     border-radius: 10px;
     padding: 14px;
-    margin-bottom: 10px;
+    margin-top: 14px;
     border: 1px solid #1a2e48;
-    position: relative;
   }
-  .agent-card .agent-header {
+  .result-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-  }
-  .agent-card .agent-name {
+    padding: 7px 0;
+    border-bottom: 1px solid #111c30;
     font-size: 0.85rem;
-    font-weight: bold;
-    color: #88c0f0;
   }
-  .btn-remove {
-    background: none;
-    border: 1px solid #553333;
-    color: #ee6666;
-    border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 0.72rem;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .btn-remove:hover { background: #331111; }
-  .agent-row {
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-  }
-  .agent-row > div { flex: 1; }
-  .agent-row label { font-size: 0.7rem; margin-top: 0; }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { color: #8899aa; }
+  .result-val  { font-weight: bold; font-size: 1rem; }
+  .gold  { color: #f0c040; }
+  .green { color: #4caf50; }
+  .red   { color: #ef5350; }
+  .blue  { color: #42a5f5; }
+  .white { color: #e0e0e0; }
 
-  .btn-add {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px dashed #335566;
-    background: transparent;
-    color: #66aabb;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-top: 6px;
+  .profit-box {
+    background: linear-gradient(135deg, #1a2a44, #111d33);
+    border: 1px solid #f0c04044;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 12px;
+    text-align: center;
   }
-  .btn-add:hover { background: #112233; }
+  .profit-label { font-size: 0.75rem; color: #aa9966; letter-spacing: 1px; }
+  .profit-val   { font-size: 1.8rem; font-weight: bold; color: #f0c040; margin-top: 4px; }
 
-  /* 結果表格 */
-  .result-table {
+  /* 記錄表格 */
+  .record-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
+    margin-top: 10px;
   }
-  .result-table th {
+  .record-table th {
     text-align: left;
     color: #aa9966;
     font-weight: normal;
     padding: 8px 6px;
     border-bottom: 1px solid #1a2a40;
-    font-size: 0.75rem;
+    white-space: nowrap;
   }
-  .result-table td {
+  .record-table td {
     padding: 8px 6px;
     border-bottom: 1px solid #111c30;
+    vertical-align: top;
   }
-  .result-table tr:last-child td { border-bottom: none; }
-  .num { text-align: right; font-weight: bold; }
-  .green { color: #4caf50; }
-  .gold  { color: #f0c040; }
-  .red   { color: #ef5350; }
-  .blue  { color: #42a5f5; }
-  .gray  { color: #667788; }
+  .record-table tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-weight: bold; white-space: nowrap; }
+  .record-empty { text-align: center; color: #556677; padding: 20px 0; font-size: 0.82rem; }
 
-  .divider {
-    text-align: center;
-    color: #aa8844;
-    font-size: 0.72rem;
-    margin: 6px 0;
-    letter-spacing: 2px;
+  .btn-clear {
+    display: block;
+    width: 100%;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid #553333;
+    background: transparent;
+    color: #ee6666;
+    font-size: 0.82rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
   }
-
-  .summary-box {
-    background: linear-gradient(135deg, #1a2a44, #111d33);
-    border: 1px solid #f0c04044;
-    border-radius: 10px;
-    padding: 16px;
-    margin-top: 4px;
-  }
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-  }
-  .summary-label { font-size: 0.78rem; color: #aa9966; }
-  .summary-val  { font-size: 1.1rem; font-weight: bold; }
-  .summary-total {
-    border-top: 1px solid #2a3a50;
-    margin-top: 8px;
-    padding-top: 12px;
-  }
-  .summary-total .summary-val { font-size: 1.5rem; }
+  .btn-clear:hover { background: #331111; }
 
   .hint { font-size: 0.7rem; color: #556677; margin-top: 3px; }
 
@@ -197,18 +179,25 @@
 <div class="container">
   <h1>🎰 業績獎金計算器</h1>
 
-  <!-- 基本資料 -->
+  <!-- 輸入區 -->
   <div class="card">
-    <div class="card-title"><span class="icon">📋</span> 基本資料</div>
-    <label>賭場</label>
-    <select id="casino">
-      <option value="cod">新濠天地 City of Dreams</option>
-      <option value="wpalace">永利皇宮 Wynn Palace</option>
-      <option value="other">其他</option>
-    </select>
+    <div class="card-title"><span class="icon">📋</span> 計算資料</div>
+
+    <label>日期</label>
+    <input type="date" id="rDate" id="rDate">
+
+    <label>大代理名稱</label>
+    <input type="text" id="bigName" placeholder="例：Theo">
+
+    <label>小代理名稱</label>
+    <input type="text" id="smallName" placeholder="例：小代理 A">
+
+    <label>會員代號 / 名稱</label>
+    <input type="text" id="member" placeholder="例：VIP-001">
+
     <div class="row" style="margin-top:12px;">
       <div>
-        <label>大代理總 Theo（HKD）</label>
+        <label>總 Theo（HKD）</label>
         <input type="number" id="totalTheo" placeholder="例：5000000" min="0" step="1000">
       </div>
       <div>
@@ -216,56 +205,70 @@
         <input type="number" id="bigRate" value="12" min="0" max="100" step="0.1">
       </div>
     </div>
-    <div class="hint">折扣固定 0.94（6% 成本），不可調整</div>
-  </div>
+    <div class="hint">大代理獎金 = Theo × 抽成%，再 × 0.94（固定扣除 6% 成本）</div>
 
-  <!-- 小代理列表 -->
-  <div class="card">
-    <div class="card-title"><span class="icon">👥</span> 小代理列表</div>
-    <div id="agentList"></div>
-    <button class="btn-add" onclick="addAgent()">＋ 新增小代理</button>
+    <div style="margin-top:12px;">
+      <label>小代理抽成 %（從大代理獎金中扣除）</label>
+      <input type="number" id="smallRate" value="10" min="0" max="100" step="0.1">
+      <div class="hint">小代理獎金 = Theo × 此比例%，從大代理實得中扣除</div>
+    </div>
+
+    <button class="btn-calc" onclick="doCalc()">計 算</button>
   </div>
 
   <!-- 計算結果 -->
-  <div class="card">
+  <div class="card" id="resultCard" style="display:none;">
     <div class="card-title"><span class="icon">🧮</span> 計算結果</div>
-    <table class="result-table">
-      <thead>
-        <tr>
-          <th>小代理</th>
-          <th>其 Theo</th>
-          <th>比例</th>
-          <th class="num">獎金</th>
-        </tr>
-      </thead>
-      <tbody id="resultBody"></tbody>
-    </table>
-    <div class="divider">── 總結 ──</div>
-    <div class="summary-box" id="summaryBox">
-      <div class="summary-row">
-        <span class="summary-label">大代理總獎金（未扣成本）</span>
-        <span class="summary-val gold" id="sBigGross">—</span>
+
+    <div class="result-box">
+      <div class="result-row">
+        <span class="result-label">大代理獎金（未扣成本）</span>
+        <span class="result-val gold" id="rBigGross">—</span>
       </div>
-      <div class="summary-row">
-        <span class="summary-label">扣除 6% 成本後實得</span>
-        <span class="summary-val green" id="sBigNet">—</span>
+      <div class="result-row">
+        <span class="result-label">扣除 6% 成本後實得</span>
+        <span class="result-val green" id="rBigNet">—</span>
       </div>
-      <div class="summary-row">
-        <span class="summary-label">發放小代理總額</span>
-        <span class="summary-val red" id="sSmallTotal">—</span>
+      <div class="result-row">
+        <span class="result-label">小代理獎金（<span id="rSmallName">—</span>）</span>
+        <span class="result-val red" id="rSmallBonus">—</span>
       </div>
-      <div class="summary-row summary-total">
-        <span class="summary-label">🏆 大代理最終利潤</span>
-        <span class="summary-val gold" id="sBigProfit">—</span>
-      </div>
-      <div style="margin-top:14px;" id="smallSummary"></div>
     </div>
+
+    <div class="profit-box">
+      <div class="profit-label">🏆 大代理最終利潤</div>
+      <div class="profit-val" id="rBigProfit">—</div>
+    </div>
+
+    <div class="hint" style="margin-top:12px;">＊計算結果已自動存入下方記錄表</div>
+  </div>
+
+  <!-- 記錄表格 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span> 計算記錄</div>
+    <div style="overflow-x:auto;">
+      <table class="record-table" id="recordTable">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>大代理</th>
+            <th>會員</th>
+            <th class="num">大代理獎金</th>
+            <th class="num">小代理獎金</th>
+            <th class="num">大代理利潤</th>
+          </tr>
+        </thead>
+        <tbody id="recordBody"></tbody>
+      </table>
+    </div>
+    <div class="record-empty" id="emptyHint">尚無計算記錄，請先按「計算」</div>
+    <button class="btn-clear" onclick="clearRecords()">清除所有記錄</button>
     <div class="formula">
       <b>計算邏輯：</b><br>
-      大代理獎金 = 總 Theo × <span id="fmtRate">12</span>%<br>
-      大代理實得 = 大代理獎金 × 0.94（扣除 6% 成本）<br>
-      小代理獎金 = 小代理自身 Theo × 約定比例%<br>
-      大代理利潤 = 大代理實得 − 發放小代理總額
+      大代理獎金　 ＝ 總 Theo × 大代理 %<br>
+      大代理實得　　＝ 大代理獎金 × 0.94（扣除 6% 成本）<br>
+      小代理獎金　　＝ 總 Theo × 小代理 %<br>
+      大代理最終利潤 ＝ 大代理實得 − 小代理獎金
     </div>
   </div>
 </div>
@@ -276,132 +279,90 @@ const fmt = n => {
   return '$' + Math.round(n).toLocaleString('zh-HK');
 };
 
-let agents = [];
+const $ = id => document.getElementById(id);
 
-function addAgent(name, theo, rate) {
-  const id = Date.now() + Math.random();
-  agents.push({
-    id,
-    name: name || '',
-    theo: theo || '',
-    rate: rate || 10
+// 初始化日期為今天
+(function init() {
+  const today = new Date().toISOString().split('T')[0];
+  $('rDate').value = today;
+  loadRecords();
+})();
+
+function doCalc() {
+  const date     = $('rDate').value;
+  const bigName  = $('bigName').value.trim() || '（未填）';
+  const smallNm  = $('smallName').value.trim() || '（未填）';
+  const member   = $('member').value.trim() || '（未填）';
+  const theo     = parseFloat($('totalTheo').value) || 0;
+  const bigRate  = parseFloat($('bigRate').value) || 0;
+  const smallRate= parseFloat($('smallRate').value) || 0;
+
+  if (theo <= 0) { alert('請輸入 Theo 金額'); return; }
+
+  // 計算
+  const bigGross    = theo * (bigRate / 100);
+  const bigNet      = bigGross * 0.94;
+  const smallBonus  = theo * (smallRate / 100);
+  const bigProfit   = bigNet - smallBonus;
+
+  // 顯示結果
+  $('rBigGross').textContent   = fmt(bigGross);
+  $('rBigNet').textContent     = fmt(bigNet);
+  $('rSmallName').textContent  = smallNm;
+  $('rSmallBonus').textContent = fmt(smallBonus);
+  $('rBigProfit').textContent  = fmt(bigProfit);
+  $('resultCard').style.display = 'block';
+
+  // 存入記錄
+  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
+  records.unshift({
+    date,
+    bigName,
+    smallName: smallNm,
+    member,
+    theo,
+    bigRate,
+    smallRate,
+    bigGross,
+    bigNet,
+    smallBonus,
+    bigProfit
   });
-  renderAgents();
-  calc();
+  localStorage.setItem('bonusRecords', JSON.stringify(records));
+  renderRecords();
 }
 
-function removeAgent(id) {
-  agents = agents.filter(a => a.id !== id);
-  renderAgents();
-  calc();
-}
+function renderRecords() {
+  const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
+  const body    = $('recordBody');
+  const empty   = $('emptyHint');
 
-function renderAgents() {
-  const list = $('agentList');
-  if (agents.length === 0) {
-    list.innerHTML = '<div style="color:#556677;font-size:0.82rem;text-align:center;padding:16px 0;">尚未新增小代理，點擊下方按鈕新增</div>';
+  if (records.length === 0) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
     return;
   }
-  list.innerHTML = agents.map(a => `
-    <div class="agent-card">
-      <div class="agent-header">
-        <span class="agent-name">${a.name || '（未命名）'}</span>
-        <button class="btn-remove" onclick="removeAgent(${a.id})">刪除</button>
-      </div>
-      <div class="agent-row">
-        <div>
-          <label>名稱</label>
-          <input type="text" value="${a.name || ''}" placeholder="小代理名稱"
-            onchange="updateAgent(${a.id}, 'name', this.value)">
-        </div>
-        <div>
-          <label>其 Theo（HKD）</label>
-          <input type="number" value="${a.theo || ''}" placeholder="0"
-            onchange="updateAgent(${a.id}, 'theo', this.value)" min="0" step="1000">
-        </div>
-        <div>
-          <label>比例 %</label>
-          <input type="number" value="${a.rate}" placeholder="10"
-            onchange="updateAgent(${a.id}, 'rate', this.value)" min="0" max="100" step="0.1">
-        </div>
-      </div>
-    </div>
+  empty.style.display = 'none';
+
+  body.innerHTML = records.map(r => `
+    <tr>
+      <td style="color:#8899aa;white-space:nowrap;">${r.date}</td>
+      <td style="color:#88c0f0;">${r.bigName}</td>
+      <td style="color:#aaa;">${r.member}</td>
+      <td class="num gold">${fmt(r.bigNet)}</td>
+      <td class="num green">${fmt(r.smallBonus)}</td>
+      <td class="num ${r.bigProfit >= 0 ? 'gold' : 'red'}">${fmt(r.bigProfit)}</td>
+    </tr>
   `).join('');
 }
 
-function updateAgent(id, field, val) {
-  const a = agents.find(x => x.id === id);
-  if (!a) return;
-  if (field === 'theo') a.theo = parseFloat(val) || 0;
-  else if (field === 'rate') a.rate = parseFloat(val) || 0;
-  else a[field] = val;
-  calc();
+function loadRecords() { renderRecords(); }
+
+function clearRecords() {
+  if (!confirm('確定清除所有記錄？')) return;
+  localStorage.removeItem('bonusRecords');
+  renderRecords();
 }
-
-function calc() {
-  const totalTheo = parseFloat($('totalTheo').value) || 0;
-  const bigRate   = parseFloat($('bigRate').value) || 0;
-
-  $('fmtRate').textContent = bigRate;
-
-  if (totalTheo <= 0 || agents.length === 0) {
-    $('resultBody').innerHTML = '<tr><td colspan="4" style="color:#556677;text-align:center;padding:16px 0;font-size:0.82rem;">請輸入總 Theo 並新增小代理</td></tr>';
-    resetSummary();
-    return;
-  }
-
-  // 大代理
-  const bigGross  = totalTheo * (bigRate / 100);
-  const bigNet    = bigGross * 0.94;  // 固定扣除6%
-
-  // 小代理
-  let smallTotal = 0;
-  const rows = agents.map(a => {
-    const bonus = (a.theo || 0) * (a.rate / 100);
-    smallTotal += bonus;
-    return `
-      <tr>
-        <td class="gray">${a.name || '（未命名）'}</td>
-        <td class="gray">${a.theo ? fmt(a.theo) : '—'}</td>
-        <td class="gray">${(a.rate || 0)}%</td>
-        <td class="num green">${fmt(bonus)}</td>
-      </tr>`;
-  }).join('');
-
-  $('resultBody').innerHTML = rows;
-
-  const bigProfit = bigNet - smallTotal;
-
-  $('sBigGross').textContent   = fmt(bigGross);
-  $('sBigNet').textContent     = fmt(bigNet);
-  $('sSmallTotal').textContent = fmt(smallTotal);
-  $('sBigProfit').textContent  = fmt(bigProfit);
-
-  // 小代理明細
-  const smallHtml = agents.map(a => {
-    const bonus = (a.theo || 0) * (a.rate / 100);
-    return `<div class="summary-row">
-      <span class="summary-label">${a.name || '（未命名）'}</span>
-      <span class="summary-val green">${fmt(bonus)}</span>
-    </div>`;
-  }).join('');
-  $('smallSummary').innerHTML = '<div style="font-size:0.75rem;color:#aa9966;margin-bottom:6px;">小代理實收獎金</div>' + smallHtml;
-}
-
-function resetSummary() {
-  ['sBigGross','sBigNet','sSmallTotal','sBigProfit'].forEach(id => $(id).textContent = '—');
-  $('smallSummary').innerHTML = '';
-}
-
-function $(id) { return document.getElementById(id); }
-
-// 監聽總 Theo / 大代理 %
-$('totalTheo').addEventListener('input', calc);
-$('bigRate').addEventListener('input', calc);
-
-// 預設新增兩個小代理範例
-addAgent('小代理 A', 2000000, 10);
-addAgent('小代理 B', 1500000, 10);
 </script>
 </body>
 </html>
