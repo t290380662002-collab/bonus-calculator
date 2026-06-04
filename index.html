@@ -611,20 +611,6 @@ function selectAll() {
 // 初始化
 initCal();
 
-/* ── 日期篩選切換 ── */
-function setDateFilter(mode) {
-  $('btnAll').classList.remove('active');
-  $('btnMonth').classList.remove('active');
-  if (mode === 'month') {
-    $('btnMonth').classList.add('active');
-  } else {
-    $('btnAll').classList.add('active');
-  }
-  renderRecords();
-}
-// 預設「本月」
-setDateFilter('month');
-
 function claimRecord(idx) {
   const records = JSON.parse(localStorage.getItem('bonusRecords') || '[]');
   if (idx < 0 || idx >= records.length) return;
