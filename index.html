@@ -419,9 +419,8 @@
         </div>
         <div id="calGrid" class="cal-grid" style="display:none;"></div>
         <div style="margin-top:10px; display:flex; gap:8px; justify-content:center;">
-          <button class="tab-btn" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectToday()">本月</button>
-          <button class="tab-btn" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectYear()">本年</button>
-          <button class="tab-btn" style="max-width:90px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectAll()">全部</button>
+          <button class="tab-btn active" style="max-width:100px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectToday()" id="btnMonth">本月</button>
+          <button class="tab-btn" style="max-width:100px; padding:6px 0; border-radius:6px; display:inline-block;" onclick="selectAll()" id="btnAll">全部</button>
         </div>
       </div>
 
@@ -493,16 +492,18 @@ function setSync(online) {
 
 /* ===== 頁面切換 ===== */
 function switchPage(p) {
-  var tabs = document.querySelectorAll('.tab-btn');
-  tabs.forEach(function(t) { t.classList.remove('active'); });
+  // 只切換頁面頂部的計算/記錄 tab
+  var topTabs = document.querySelectorAll('.tabs .tab-btn');
+  topTabs.forEach(function(t) { t.classList.remove('active'); });
   document.querySelectorAll('.page').forEach(function(pg) { pg.classList.remove('active'); });
   if (p === 'calc') {
     $('pageCalc').classList.add('active');
-    tabs[0].classList.add('active');
+    topTabs[0].classList.add('active');
   } else {
     $('pageRecords').classList.add('active');
-    tabs[1].classList.add('active');
+    topTabs[1].classList.add('active');
     renderRecords();
+    renderCal();
   }
 }
 
@@ -571,6 +572,9 @@ function renderCal() {
 }
 function selectDate(dateStr) {
   filterDate = dateStr;
+  $('btnMonth').classList.remove('active');
+  $('btnAll').classList.remove('active');
+  $('calGrid').style.display = 'none';
   renderRecords();
 }
 function selectToday() {
@@ -580,14 +584,15 @@ function selectToday() {
   filterDate = '';
   renderCal();
   $('calGrid').style.display = 'flex';
-  renderRecords();
-}
-function selectYear() {
-  filterDate = '__YEAR__';
+  $('btnMonth').classList.add('active');
+  $('btnAll').classList.remove('active');
   renderRecords();
 }
 function selectAll() {
-  filterDate = '';
+  filterDate = '__ALL__';
+  $('btnAll').classList.add('active');
+  $('btnMonth').classList.remove('active');
+  $('calGrid').style.display = 'none';
   renderRecords();
 }
 
@@ -596,7 +601,7 @@ function getFiltered() {
   var now = new Date();
   return allRecords.filter(function(r) {
     if (!r || !r.date) return false;
-    if (filterDate === '__YEAR__') return r.date.indexOf(String(now.getFullYear())) === 0;
+    if (filterDate === '__ALL__') return true;
     if (filterDate) return r.date === filterDate;
     // 預設：本月
     var d = new Date(r.date);
