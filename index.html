@@ -549,10 +549,9 @@ function changeMonth(delta) {
   calMonth += delta;
   if (calMonth > 11) { calMonth = 0; calYear++; }
   if (calMonth < 0)  { calMonth = 11; calYear--; }
-  filterDate = '';  // 清除單日篩選，改為整月模式
+  filterDate = '';
   renderCal();
   renderRecords();
-  $('calGrid').style.display = 'flex';
   $('btnMonth').classList.add('active');
   $('btnAll').classList.remove('active');
 }
