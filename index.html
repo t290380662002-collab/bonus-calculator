@@ -548,6 +548,7 @@ function changeMonth(delta) {
   if (calMonth > 11) { calMonth = 0; calYear++; }
   if (calMonth < 0)  { calMonth = 11; calYear--; }
   renderCal();
+  $('calGrid').style.display = 'flex';
 }
 function renderCal() {
   $('calTitle').textContent = calYear + '年 ' + MONTH_TITLES[calMonth];
