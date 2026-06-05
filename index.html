@@ -511,9 +511,9 @@ function switchPage(p) {
 
 /* ===== 大代理選單 ===== */
 function getBigAgents() {
-  return JSON.parse(localStorage.getItem('bigAgents') || '["Alen","忠"]');
+  return JSON.parse(localStorage.getItem('bigAgentsV2') || '["A","H"]');
 }
-function saveBigAgents(list) { localStorage.setItem('bigAgents', JSON.stringify(list)); }
+function saveBigAgents(list) { localStorage.setItem('bigAgentsV2', JSON.stringify(list)); }
 function renderBigAgentSelect() {
   var sel = $('bigName');
   sel.innerHTML = getBigAgents().map(function(n) { return '<option value="' + n + '">' + n + '</option>'; }).join('');
