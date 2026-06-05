@@ -303,6 +303,8 @@
     justify-content: center;
     max-width: 340px;
     margin: 8px auto 0;
+    touch-action: pan-y;
+    user-select: none;
   }
   .cal-day {
     width: 38px; height: 30px;
@@ -571,6 +573,22 @@ function renderCal() {
   }
   $('calGrid').innerHTML = html;
 }
+/* ===== 月曆滑動切換 ===== */
+var swipeStartX = 0;
+var swipeStartY = 0;
+function onCalTouchStart(e) {
+  swipeStartX = e.touches[0].clientX;
+  swipeStartY = e.touches[0].clientY;
+}
+function onCalTouchEnd(e) {
+  var dx = e.changedTouches[0].clientX - swipeStartX;
+  var dy = e.changedTouches[0].clientY - swipeStartY;
+  var threshold = 50;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
+    changeMonth(dx > 0 ? -1 : 1);
+  }
+}
+
 function selectDate(dateStr) {
   filterDate = dateStr;
   $('btnMonth').classList.remove('active');
@@ -739,6 +757,8 @@ function clearRecords() {
   $('rDate').value = today;
   renderBigAgentSelect();
   initCal();
+  $('calGrid').addEventListener('touchstart', onCalTouchStart, {passive:true});
+  $('calGrid').addEventListener('touchend', onCalTouchEnd, {passive:true});
   // 預設：顯示本月記錄
   filterDate = '';
   // 如果 Firebase 已載入則 renderRecords 會被 on('value') 呼叫
