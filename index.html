@@ -549,8 +549,12 @@ function changeMonth(delta) {
   calMonth += delta;
   if (calMonth > 11) { calMonth = 0; calYear++; }
   if (calMonth < 0)  { calMonth = 11; calYear--; }
+  filterDate = '';  // 清除單日篩選，改為整月模式
   renderCal();
+  renderRecords();
   $('calGrid').style.display = 'flex';
+  $('btnMonth').classList.add('active');
+  $('btnAll').classList.remove('active');
 }
 function renderCal() {
   $('calTitle').textContent = calYear + '年 ' + MONTH_TITLES[calMonth];
@@ -617,14 +621,13 @@ function selectAll() {
 
 /* ===== 篩選記錄 ===== */
 function getFiltered() {
-  var now = new Date();
   return allRecords.filter(function(r) {
     if (!r || !r.date) return false;
     if (filterDate === '__ALL__') return true;
     if (filterDate) return r.date === filterDate;
-    // 預設：本月
+    // 預設：日曆當前顯示月份
     var d = new Date(r.date);
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    return d.getFullYear() === calYear && d.getMonth() === calMonth;
   }).sort(function(a,b) { return (b.createdAt||0) - (a.createdAt||0); });
 }
 
